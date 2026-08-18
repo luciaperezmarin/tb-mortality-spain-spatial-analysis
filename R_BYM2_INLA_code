@@ -35,7 +35,7 @@ library(spdep)
 #      - expected : expected number of deaths
 #      - INE_Mun  : municipality identifier
 #
-# 2. Adjacency graph file
+# 2. Adjacency graph file (adjacency_graph.txt)
 #    INLA graph defining municipality neighbourhood structure
 #
 # Replace the example paths below with the corresponding
