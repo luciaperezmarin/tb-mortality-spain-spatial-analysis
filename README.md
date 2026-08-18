@@ -12,6 +12,12 @@ Pérez-Marín L, Alcalde-Cabero E, García-García D, Rojas-Benedicto A, Roy Á,
 
 "Mapping tuberculosis mortality risk in Spain from 2000 to 2023".
 
+## Repository contents
+
+- `Spatial_model_BYM2.R`: R/INLA code used to estimate municipality-level smoothed standardized mortality ratios (sSMRs) and exceedance probabilities using the BYM2 model.
+
+- `adjacency_graph.txt`: adjacency graph used in the spatial analyses and required for the implementation of the BYM2 model in INLA.
+
 ## Data availability
 
 The mortality microdata used in this study are owned by the Spanish National Statistics Institute (Instituto Nacional de Estadística, INE) and are subject to legal and confidentiality restrictions. Therefore, the original data cannot be publicly shared.
