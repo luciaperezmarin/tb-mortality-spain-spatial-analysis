@@ -1,5 +1,5 @@
 #############################################################
-# Tuberculosis mortality in Spain (2000–2023)
+# Tuberculosis mortality risk in Spain (2000–2023)
 # Bayesian spatial modelling using BYM2 (R-INLA)
 #
 # This script implements the BYM2 model used to estimate
@@ -49,7 +49,7 @@ datos <- readRDS(file.path(project_dir, "RME.rds"))
 
 # Adjacency graph
 g <- inla.read.graph(
-  file.path(project_dir, "Matriz_INLA_penibalCAN.txt")
+  file.path(project_dir, "adjacency_graph.txt")
 )
 
 # -----------------------------------------------------------
