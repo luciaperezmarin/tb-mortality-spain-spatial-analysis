@@ -1,0 +1,147 @@
+#############################################################
+# Tuberculosis mortality in Spain (2000–2023)
+# Bayesian spatial modelling using BYM2 (R-INLA)
+#
+# This script implements the BYM2 model used to estimate
+# municipality-level smoothed standardized mortality ratios
+# (sSMR) and exceedance probabilities.
+#
+# Note:
+# The original mortality microdata cannot be shared because
+# they are owned by the Spanish National Statistics Institute
+# (INE) and are subject to legal and confidentiality
+# restrictions.
+#############################################################
+
+# -----------------------------------------------------------
+# Required packages
+# -----------------------------------------------------------
+
+library(INLA)
+library(dplyr)
+library(tidyverse)
+library(sf)
+library(spdep)
+
+# -----------------------------------------------------------
+# Input files
+# -----------------------------------------------------------
+#
+# Required inputs:
+#
+# 1. RME.rds
+#    Dataset containing:
+#      - observed : observed number of deaths
+#      - expected : expected number of deaths
+#      - INE_Mun  : municipality identifier
+#
+# 2. Adjacency graph file
+#    INLA graph defining municipality neighbourhood structure
+#
+# Replace the example paths below with the corresponding
+# locations on your system.
+# -----------------------------------------------------------
+
+project_dir <- "path/to/project_directory"
+
+# Mortality dataset
+datos <- readRDS(file.path(project_dir, "RME.rds"))
+
+# Adjacency graph
+g <- inla.read.graph(
+  file.path(project_dir, "Matriz_INLA_penibalCAN.txt")
+)
+
+# -----------------------------------------------------------
+# Data preparation
+# -----------------------------------------------------------
+
+# Sort municipalities by municipality code
+datos <- datos %>%
+  arrange(INE_Mun)
+
+# Create municipality indices required by INLA
+datos$idarea <- as.numeric(factor(datos$INE_Mun))
+datos$idarea2 <- datos$idarea
+
+# -----------------------------------------------------------
+# BYM2 model specification
+# -----------------------------------------------------------
+
+f1 <- observed ~
+  f(
+    idarea,
+    model = "bym2",
+    graph = g,
+    scale.model = TRUE,
+    hyper = list(
+      phi = list(
+        prior = "pc",
+        param = c(0.5, 2 / 3)
+      ),
+      prec = list(
+        prior = "pc.prec",
+        param = c(0.5 / 0.31, 0.01)
+      )
+    )
+  )
+
+# -----------------------------------------------------------
+# Model fitting
+# -----------------------------------------------------------
+
+m1 <- inla(
+  f1,
+  family = "poisson",
+  data = datos,
+  E = datos$expected,
+  control.predictor = list(compute = TRUE),
+  control.compute = list(
+    dic = TRUE,
+    waic = TRUE,
+    return.marginals.predictor = TRUE
+  ),
+  verbose = TRUE
+)
+
+# -----------------------------------------------------------
+# Extract model outputs
+# -----------------------------------------------------------
+
+# Smoothed standardized mortality ratios (sSMR)
+datos$ic95low <- m1$summary.fitted.values$`0.025quant`
+datos$mean <- m1$summary.fitted.values$mean
+datos$ic95hi <- m1$summary.fitted.values$`0.975quant`
+
+# Exceedance probability:
+# P(sSMR > 1)
+
+datos$exceedance <- sapply(
+  m1$marginals.fitted.values,
+  FUN = function(marg) {
+    1 - inla.pmarginal(
+      q = 1,
+      marginal = marg
+    )
+  }
+)
+
+# -----------------------------------------------------------
+# Save outputs
+# -----------------------------------------------------------
+
+saveRDS(
+  datos,
+  file = file.path(
+    project_dir,
+    "results",
+    "spatial_model_results.rds"
+  )
+)
+
+# -----------------------------------------------------------
+# Model diagnostics
+# -----------------------------------------------------------
+
+cat("DIC:", m1$dic$dic, "\n")
+cat("WAIC:", m1$waic$waic, "\n")
