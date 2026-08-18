@@ -14,7 +14,7 @@ Pérez-Marín L, Alcalde-Cabero E, García-García D, Rojas-Benedicto A, Roy Á,
 
 ## Repository contents
 
-- `Spatial_model_BYM2.R`: R/INLA code used to estimate municipality-level smoothed standardized mortality ratios (sSMRs) and exceedance probabilities using the BYM2 model.
+- `R_BYM2_INLA_code.R`: R/INLA code used to estimate municipality-level smoothed standardized mortality ratios (sSMRs) and exceedance probabilities using the BYM2 model.
 
 - `adjacency_graph.txt`: adjacency graph used in the spatial analyses and required for the implementation of the BYM2 model in INLA.
 
